@@ -216,6 +216,7 @@ void calc_mol_pos(Particle *p_com,double r_com[3]){
 #endif
 }
 
+// Calculates center of mass of a particle
 int calc_mol_pos_cfg(Particle *p_com,double r_com[3]){
    int i,j,mol_id;
    double M=0;
