@@ -28,6 +28,12 @@
 #include "interaction_data.h"
 #include "communication.h"
 
+// This code requires the "center of mass" implementation of virtual sites
+#ifndef VIRTUAL_SITES_COM
+ #error Adress requires the "center of mass"-implementation  of virtual sites. Please activate it in myconfig.h
+#endif
+
+
 /** \name Exported Variables */
 /************************************************************/
 /*@{*/
