@@ -365,4 +365,16 @@ void convert_torques_body_to_space(Particle *p, double *torque)
 
 }
 
+
+/** Multiply two quaternions */
+void multiply_quaternions(double a[4], double b[4], double result[4])
+{
+ // Formula from http://www.j3d.org/matrix_faq/matrfaq_latest.html
+ result[0] = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
+ result[1] = a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2];
+ result[2] = a[0] * b[2] + a[2] * b[0] + a[3] * b[1] - a[1] * b[3]; 
+ result[3] = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1];
+}
+
+
 #endif
