@@ -37,13 +37,25 @@
 /* #define BOND_CONSTRAINT */
 /* #define MODES */
 /* #define BOND_VIRTUAL */
-/* #define VIRTUAL_SITES */
+
+// To use address, also activate VIRTUAL_SITES and VIRTUAL_SITES_COM
 /* #define ADRESS*/
+
+
 /* #define DAWAANR */
 /* #define MAGNETIC_DIPOLAR_DIRECT_SUM */
 /* #define MDLC */
 /* #define METADYNAMICS */
 /* #define OVERLAPPED */
+
+// When using virtual_sites, activate ONE implementation, below
+/* #define VIRTUAL_SITES */
+// This implementation puts the virtual particle in the center of mass
+// of all real particles in the same molecule
+/* #define VIRTUAL_SITES_COM */
+// This implementation puts a virtual particle relative to a real particle's
+// positino and orientation 
+/* #define VIRTUAL_SITES_RELATIVE */
 
 /**********************************************************************/
 /*                        integrator features                         */
