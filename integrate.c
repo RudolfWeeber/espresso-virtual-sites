@@ -689,6 +689,7 @@ void rescale_forces_propagate_vel()
     np = cell->n;
     for(i = 0; i < np; i++) {
 #ifdef VIRTUAL_SITES
+       // Virtual sites are not propagated during integration
        if (ifParticleIsVirtual(&p[i])) continue;
 #endif
       /* Rescale forces: f_rescaled = 0.5*dt*dt * f_calculated * (1/mass) */
@@ -787,7 +788,12 @@ void propagate_press_box_pos_and_rescale_npt()
     /* propagate positions while rescaling positions and velocities */
     for (c = 0; c < local_cells.n; c++) {
       cell = local_cells.cell[c]; p  = cell->part; np = cell->n;
-      for(i = 0; i < np; i++) {	for(j=0; j < 3; j++){
+      for(i = 0; i < np; i++) {	
+#ifdef VIRTUAL_SITES
+       // Virtual sites are not propagated during integration
+       if (ifParticleIsVirtual(&p[i])) continue;
+#endif
+       for(j=0; j < 3; j++){
 #ifdef EXTERNAL_FORCES
 	if (!(p[i].l.ext_flag & COORD_FIXED(j))) {
 #endif	    
@@ -850,6 +856,10 @@ void propagate_vel()
     p  = cell->part;
     np = cell->n;
     for(i = 0; i < np; i++) {
+#ifdef VIRTUAL_SITES
+       // Virtual sites are not propagated during integration
+       if (ifParticleIsVirtual(&p[i])) continue;
+#endif
       for(j=0; j < 3; j++){
 #ifdef EXTERNAL_FORCES
 	if (!(p[i].l.ext_flag & COORD_FIXED(j)))	
@@ -909,6 +919,10 @@ void propagate_pos()
       p  = cell->part;
       np = cell->n;
       for(i = 0; i < np; i++) {
+#ifdef VIRTUAL_SITES
+       // Virtual sites are not propagated during integration
+       if (ifParticleIsVirtual(&p[i])) continue;
+#endif
 	for(j=0; j < 3; j++){
 #ifdef EXTERNAL_FORCES
 	  if (!(p[i].l.ext_flag & COORD_FIXED(j)))

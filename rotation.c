@@ -219,6 +219,13 @@ void propagate_omega_quat()
     np = cell->n;
     for(i = 0; i < np; i++) {
 	  double Qd[4], Qdd[4], S[3], Wd[3];
+	  
+	  #ifdef VIRTUAL_SITES
+	   // Virtual sites are not propagated in the integration step
+	   if (ifParticleIsVirtual(&p[i]))
+	    continue;
+	  #endif
+
 	  define_Qdd(&p[i], Qd, Qdd, S, Wd);
 	  
 	  lambda = 1 - S[0]*dtdt2 - sqrt(1 - dtdt*(S[0] + time_step*(S[1] + dt4*(S[2]-S[0]*S[0]))));
@@ -232,9 +239,10 @@ void propagate_omega_quat()
 	  p[i].r.quat[1]+= time_step*(Qd[1] + dt2*Qdd[1]) - lambda*p[i].r.quat[1];
 	  p[i].r.quat[2]+= time_step*(Qd[2] + dt2*Qdd[2]) - lambda*p[i].r.quat[2];
 	  p[i].r.quat[3]+= time_step*(Qd[3] + dt2*Qdd[3]) - lambda*p[i].r.quat[3];
-
+	  // Update the director
 	  convert_quat_to_quatu(p[i].r.quat, p[i].r.quatu);
 #ifdef DIPOLES
+	  // When dipoles are enabled, update dipole moment
 	  convert_quatu_to_dip(p[i].r.quatu, p[i].p.dipm, p[i].r.dip);
 #endif
 	
