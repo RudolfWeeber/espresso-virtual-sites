@@ -22,12 +22,6 @@ int calc_mol_pos_cfg(Particle *p_com,double r_com[3]);
 void put_mol_force_on_parts(Particle *p_com);
 
 
-void update_mol_vel_pos()
-{
-   //replace this by a better implementation later!
-   update_mol_vel();
-   update_mol_pos();
-}
 
 
 void update_mol_vel_particle(Particle *p){
