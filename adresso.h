@@ -28,10 +28,6 @@
 #include "interaction_data.h"
 #include "communication.h"
 
-// This code requires the "center of mass" implementation of virtual sites
-#ifndef VIRTUAL_SITES_COM
- #error Adress requires the "center of mass"-implementation  of virtual sites. Please activate it in myconfig.h
-#endif
 
 
 /** \name Exported Variables */
@@ -50,6 +46,10 @@ int adress_tcl(ClientData data, Tcl_Interp *interp, int argc, char **argv);
 int manual_update_weights(ClientData _data, Tcl_Interp * interp, int argc, char ** argv);
 
 #ifdef ADRESS
+// This code requires the "center of mass" implementation of virtual sites
+#ifndef VIRTUAL_SITES_COM
+ #error Adress requires the "center of mass"-implementation  of virtual sites. Please activate it in myconfig.h
+#endif
 /** #ifdef THERMODYNAMIC_FORCE */
 int tf_parse(Tcl_Interp * interp, int type, double prefactor, int argc, char ** argv);
 int tf_tcl(ClientData _data, Tcl_Interp * interp, int argc, char ** argv);
