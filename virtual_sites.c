@@ -33,7 +33,8 @@ void update_mol_vel()
     p  = cell->part;
     np = cell->n;
     for(i = 0; i < np; i++) {
-       update_mol_vel_particle(&p[i]);
+       if (ifParticleIsVirtual(&p[i]))
+        update_mol_vel_particle(&p[i]);
     }
   }
 }
@@ -48,7 +49,8 @@ void update_mol_pos()
     p  = cell->part;
     np = cell->n;
     for(i = 0; i < np; i++) {
-       update_mol_pos_particle(&p[i]);
+       if (ifParticleIsVirtual(&p[i]))
+        update_mol_pos_particle(&p[i]);
     }
     //only for real particles
   }
@@ -56,8 +58,7 @@ void update_mol_pos()
 
 int update_mol_pos_cfg(){
   Particle *p;
-  int i,j;
-  double r_com[3];
+  int i;
   for(i=0; i<n_total_particles; i++) {
      p=&partCfg[i];
      update_mol_pos_particle(p);
