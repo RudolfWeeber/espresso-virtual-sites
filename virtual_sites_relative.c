@@ -44,7 +44,7 @@ void update_mol_pos_particle(Particle *p)
  // of the real particle with the quaternion of the virtual particle, which 
  // specifies the relative orientation.
  double q[4];
- multiply_quaternions(p->r.quat,p_real->r.quat,q);
+ multiply_quaternions(p_real->r.quat,p->r.quat,q);
  // Calculate the director resulting from the quaternions
  double director[3];
  convert_quat_to_quatu(q,director);
