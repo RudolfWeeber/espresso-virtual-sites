@@ -176,6 +176,11 @@ void init_particle(Particle *part)
   part->p.isVirtual      = 0;
 #endif
 
+#ifdef VIRTUAL_SITES_RELATIVE
+  part->p.vs_relative_to_particle_id      = 0;
+  part->p.vs_relative_distance =0;
+#endif
+
 #ifdef GHOST_FLAG
   part->l.ghost        = 0;
 #endif
@@ -806,6 +811,13 @@ int printParticleToResult(Tcl_Interp *interp, int part_num)
   part_print_isVirtual(&part, buffer, interp);
 #endif
 
+#ifdef VIRTUAL_SITES_RELATIVE
+  // print the particle attributes used by the "relative" implementation of virtual sites
+  Tcl_AppendResult(interp, " vs_relative ", (char *)NULL);
+  sprintf(buffer, "%d %f", part.p.vs_relative_to_particle_id, part.p.vs_relative_distance);
+  Tcl_AppendResult(interp, buffer, (char *)NULL);
+#endif
+
 #ifdef EXCLUSIONS
   if (part.el.n > 0) {
     Tcl_AppendResult(interp, " exclude ", (char *)NULL);
@@ -947,6 +959,12 @@ int part_parse_print(Tcl_Interp *interp, int argc, char **argv,
 #ifdef VIRTUAL_SITES
     else if (ARG0_IS_S("virtual"))
       part_print_isVirtual(&part, buffer, interp);
+#ifdef VIRTUAL_SITES_RELATIVE    
+    else if (ARG0_IS_S("vs_relative")) {
+      sprintf(buffer, "%d %f", part.p.vs_relative_to_particle_id, part.p.vs_relative_distance);
+      Tcl_AppendResult(interp, buffer, (char *)NULL);
+    }
+#endif
 #endif
 
 #ifdef EXTERNAL_FORCES
@@ -1186,6 +1204,41 @@ int part_parse_isVirtual(Tcl_Interp *interp, int argc, char **argv,
     return TCL_OK;
 }
 #endif
+
+#ifdef VIRTUAL_SITES
+int part_parse_vs_relative(Tcl_Interp *interp, int argc, char **argv,
+		 int part_num, int * change)
+{
+    // Se particle_data.h for explanation of the quantities
+    int vs_relative_to;
+    double vs_distance;
+
+    // We consume two arguments after the vs_relative:
+    *change = 2;
+
+    // Validate input
+    if (argc < 2) {
+      Tcl_AppendResult(interp, "vs_relative needs the id of the particle to which the virtual site is related and the distnace it should have from that particle as arguments.", (char *) NULL);
+      return TCL_ERROR;
+    }
+
+    // Get parameters from tcl
+    if (! ARG0_IS_I(vs_relative_to))
+      return TCL_ERROR;
+    
+    if (! ARG1_IS_D(vs_distance))
+      return TCL_ERROR;
+
+    if (set_particle_vs_relative(part_num, vs_relative_to, vs_distance) == TCL_ERROR) {
+      Tcl_AppendResult(interp, "set particle position first", (char *)NULL);
+
+      return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+#endif
+
 
 int part_parse_q(Tcl_Interp *interp, int argc, char **argv,
 		 int part_num, int * change)
@@ -1838,6 +1891,13 @@ int part_parse_cmd(Tcl_Interp *interp, int argc, char **argv,
 
 #endif
 
+#ifdef VIRTUAL_SITES_RELATIVE
+
+    else if (ARG0_IS_S("vs_relative"))
+      err = part_parse_vs_relative(interp, argc-1, argv+1, part_num, &change);
+
+#endif
+
 #ifdef EXTERNAL_FORCES
 
     else if (ARG0_IS_S("unfix"))
@@ -2114,6 +2174,27 @@ int set_particle_isVirtual(int part, int isVirtual)
   if (pnode == -1)
     return TCL_ERROR;
   mpi_send_isVirtual(pnode, part, isVirtual);
+  return TCL_OK;
+}
+#endif
+
+#ifdef VIRTUAL_SITES_RELATIVE
+int set_particle_vs_relative(int part, int vs_relative_to, double vs_distance)
+{
+  // Find out, on what node the particle is
+  int pnode;
+  if (!particle_node)
+    build_particle_node();
+
+  if (part < 0 || part > max_seen_particle)
+    return TCL_ERROR;
+  pnode = particle_node[part];
+
+  if (pnode == -1)
+    return TCL_ERROR;
+  
+  // Send the stuff
+  mpi_send_vs_relative(pnode, part, vs_relative_to, vs_distance);
   return TCL_OK;
 }
 #endif
