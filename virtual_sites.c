@@ -19,8 +19,10 @@
 void update_mol_vel_pos()
 {
    //replace this by a better implementation later!
-   update_mol_vel();
+
+   // ORDER MATTERS! Update_mol_vel may rely on correct positions of virtual particcles
    update_mol_pos();
+   update_mol_vel();
 }
 
 void update_mol_vel()
