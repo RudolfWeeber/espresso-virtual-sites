@@ -136,7 +136,7 @@ void distribute_mol_force()
        
        // Calculate torque to be added on real particle
        double tmp[3];
-       vector_product(p[i].f.f,d,tmp);
+       vector_product(d,p[i].f.f,tmp);
 
        // Add forces and torques
        int j;
