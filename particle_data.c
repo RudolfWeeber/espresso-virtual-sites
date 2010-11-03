@@ -1209,7 +1209,7 @@ int part_parse_isVirtual(Tcl_Interp *interp, int argc, char **argv,
 int part_parse_vs_relative(Tcl_Interp *interp, int argc, char **argv,
 		 int part_num, int * change)
 {
-    // Se particle_data.h for explanation of the quantities
+    // See particle_data.h for explanation of the quantities
     int vs_relative_to;
     double vs_distance;
 
@@ -1237,6 +1237,114 @@ int part_parse_vs_relative(Tcl_Interp *interp, int argc, char **argv,
 
     return TCL_OK;
 }
+
+// Set's up the particle, so that it's relative distance to a spicific other 
+// particle P, and the relative orientation between the director of particle P
+// and the vector pointing from P to this particle stays constant.
+// It sets the virtual, vs_relative_distance, ps_relative_to_particle_id and quaternion attributes
+// of the this particle.
+int part_parse_vs_relate_to(Tcl_Interp *interp, int argc, char **argv,
+		 int part_num, int * change)
+{
+    // We consume one argument:
+    *change = 1;
+
+    // Validate input
+    if (argc < 1) {
+      Tcl_AppendResult(interp, "vs_relate_to needs the id of the particle to which this particle should be related.", (char *) NULL);
+      return TCL_ERROR;
+    }
+
+    int vs_relate_to;
+
+    // Get parameters from tcl
+    if (! ARG0_IS_I(vs_relate_to))
+      return TCL_ERROR;
+    
+    // Get the data for the particle we act on and the one we wnat to relate
+    // it to.
+    Particle  p_current,p_relate_to;
+    if ((get_particle_data(vs_relate_to,&p_relate_to)!=TCL_OK) || 
+        (get_particle_data(part_num,&p_current)!=TCL_OK)) {
+          Tcl_AppendResult(interp, "Could not retrieve particle data for the given id.", (char *) NULL);
+          return TCL_ERROR;
+    }
+    
+    // get teh distance between the particles
+    double d[3];
+    get_mi_vector(d, p_current.r.p,p_relate_to.r.p);
+    
+    // Set the particle id of the particle we want to relate to and the distnace
+    if (set_particle_vs_relative(part_num, vs_relate_to, sqrt(sqrlen(d))) == TCL_ERROR) {
+      Tcl_AppendResult(interp, "setting the vs_relative attributes failed.", (char *)NULL);
+      return TCL_ERROR;
+    }
+
+    // Now, calculate the quaternions which specify the angle between 
+    // the director of the particel we relate to and the vector
+    // (paritlce_we_relate_to - this_particle)
+    double quat[4];
+    // The vs_relative implemnation later obtains the direcotr by multiplying
+    // the quaternions representing the orientation of the real particle
+    // with those in the virtual particle. The re quulting quaternion is then
+    // converted to a director.
+    // Whe have quat_(real particle) *quat_(virtual particle) 
+    // = quat_(obtained from desired director)
+    // Resolving this for the quat_(virtaul particle)
+
+    //Normalize desired director
+    double l=sqrt(sqrlen(d));
+    int i;
+    for (i=0;i<3;i++)
+     d[i]/=l;
+
+    // Obtain quaternions from desired director
+    double quat_director[4];
+    convert_quatu_to_quat(d, quat_director);
+
+    // Define quat as described above:
+    double x=0;
+    for (i=0;i<4;i++)
+     x+=p_relate_to.r.quat[i]*p_relate_to.r.quat[i];
+
+    quat[0]=0;
+    for (i=0;i<4;i++)
+     quat[0] +=p_relate_to.r.quat[i]*quat_director[i];
+    
+    quat[1] =-quat_director[0] *p_relate_to.r.quat[1] 
+       +quat_director[1] *p_relate_to.r.quat[0]
+       +quat_director[2] *p_relate_to.r.quat[3]
+       -quat_director[3] *p_relate_to.r.quat[2];
+    quat[2] =p_relate_to.r.quat[1] *quat_director[3] 
+      + p_relate_to.r.quat[0] *quat_director[2] 
+      - p_relate_to.r.quat[3] *quat_director[1] 
+      - p_relate_to.r.quat[2] * quat_director[0];
+    quat[3] =quat_director[3] *p_relate_to.r.quat[0]
+      - p_relate_to.r.quat[3] *quat_director[0] 
+      + p_relate_to.r.quat[2] * quat_director[1] 
+      - p_relate_to.r.quat[1] *quat_director[2];
+    for (i=0;i<4;i++)
+     quat[i]/=x;
+   
+   
+   // Verify result
+   double qtemp[4];
+   multiply_quaternions(p_relate_to.r.quat,quat,qtemp);
+   for (i=0;i<4;i++)
+    if (fabs(qtemp[i]-quat_director[i])>1E-9)
+     printf("Component %d: %f instead of %f\n",i,qtemp[i],quat_director[i]);
+
+
+   // Save the quaternions in the particle
+   if (set_particle_quat(part_num, quat) == TCL_ERROR) {
+     Tcl_AppendResult(interp, "set particle position first", (char *)NULL);
+
+     return TCL_ERROR;
+   }
+   
+   return TCL_OK;
+}
+
 #endif
 
 
@@ -1895,6 +2003,8 @@ int part_parse_cmd(Tcl_Interp *interp, int argc, char **argv,
 
     else if (ARG0_IS_S("vs_relative"))
       err = part_parse_vs_relative(interp, argc-1, argv+1, part_num, &change);
+    else if (ARG0_IS_S("vs_relate_to"))
+      err = part_parse_vs_relate_to(interp, argc-1, argv+1, part_num, &change);
 
 #endif
 

@@ -76,46 +76,16 @@ void convert_quat_to_quatu(double quat[4], double quatu[3])
 /** convert a dipole moment to quaternions and dipolar strength  */
 int convert_dip_to_quat(double dip[3], double quat[4], double *dipm)
 {
-  double dip_xy, dm;
-  double theta2, phi2;
-
+  double dm;
   // Calculate magnitude of dipole moment
   dm = sqrt(dip[0]*dip[0] + dip[1]*dip[1] + dip[2]*dip[2]);
   *dipm = dm;
+  convert_quatu_to_quat(dip,quat);
 
-  // The dipole vector needs to be != 0 to be converted into a quaternion
-  if (dm < ROUND_ERROR_PREC) {
-    return 1;
-  }
-  else {
-    // Calculate angles 
-    dip_xy = sqrt(dip[0]*dip[0] + dip[1]*dip[1]);
-    // If dipole points along z axis:
-    if (dip_xy == 0){
-      // We need to distinguish between (0,0,d_z) and (0,0,d_z)
-      if (dip[2]>0)
-       theta2 = 0;
-      else
-       theta2 = PI/2.;
-      phi2 = 0;
-    }
-    else {
-      // Here, we take care of all other directions
-      //Here we suppose that theta2 = 0.5*theta and phi2 = 0.5*(phi - PI/2),
-      //where theta and phi - angles are in spherical coordinates
-      theta2 = 0.5*acos(dip[2]/dm);
-      if (dip[1] < 0) phi2 = -0.5*acos(dip[0]/dip_xy) - PI*0.25;
-      else phi2 = 0.5*acos(dip[0]/dip_xy) - PI*0.25;
-    }
-
-    // Calculate the quaternion from the angles
-    quat[0] =  cos(theta2) * cos(phi2);
-    quat[1] = -sin(theta2) * cos(phi2);
-    quat[2] = -sin(theta2) * sin(phi2);
-    quat[3] =  cos(theta2) * sin(phi2);
-  }
   return 0;
 }
+
+
 
 /** convert quaternion director to the dipole moment */
 void convert_quatu_to_dip(double quatu[3], double dipm, double dip[3])
@@ -127,6 +97,48 @@ void convert_quatu_to_dip(double quatu[3], double dipm, double dip[3])
 }
 
 #endif
+/** Convert director to quaternions */
+int convert_quatu_to_quat(double d[3], double quat[4])
+{
+  double d_xy, dm;
+  double theta2, phi2;
+
+  // Calculate magnitude of the given vector
+  dm = sqrt(d[0]*d[0] + d[1]*d[1] + d[2]*d[2]);
+
+  // The vector needs to be != 0 to be converted into a quaternion
+  if (dm < ROUND_ERROR_PREC) {
+    return 1;
+  }
+  else {
+    // Calculate angles 
+    d_xy = sqrt(d[0]*d[0] + d[1]*d[1]);
+    // If dipole points along z axis:
+    if (d_xy == 0){
+      // We need to distinguish between (0,0,d_z) and (0,0,d_z)
+      if (d[2]>0)
+       theta2 = 0;
+      else
+       theta2 = PI/2.;
+      phi2 = 0;
+    }
+    else {
+      // Here, we take care of all other directions
+      //Here we suppose that theta2 = 0.5*theta and phi2 = 0.5*(phi - PI/2),
+      //where theta and phi - angles are in spherical coordinates
+      theta2 = 0.5*acos(d[2]/dm);
+      if (d[1] < 0) phi2 = -0.5*acos(d[0]/d_xy) - PI*0.25;
+      else phi2 = 0.5*acos(d[0]/d_xy) - PI*0.25;
+    }
+
+    // Calculate the quaternion from the angles
+    quat[0] =  cos(theta2) * cos(phi2);
+    quat[1] = -sin(theta2) * cos(phi2);
+    quat[2] = -sin(theta2) * sin(phi2);
+    quat[3] =  cos(theta2) * sin(phi2);
+  }
+  return 0;
+}
 
 /** Here we use quaternions to calculate the rotation matrix which
     will be used then to transform torques from the laboratory to
