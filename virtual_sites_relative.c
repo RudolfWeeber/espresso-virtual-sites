@@ -58,6 +58,8 @@ void update_mol_pos_particle(Particle *p)
  for (i=0;i<3;i++)
  {
   p->r.p[i] =p_real->r.p[i] +director[i]/l*p->p.vs_relative_distance;
+//  p->l.i[i] =p_real->l.i[i];
+  fold_coordinate(p->r.p, p->l.i, i);
  }
 }
 
