@@ -55,12 +55,30 @@ void update_mol_pos_particle(Particle *p)
  // Calculate the new position of the virtual sites from
  // position of real particle + director 
  int i;
+ double new_pos[3];
+ double tmp;
  for (i=0;i<3;i++)
  {
-  p->l.p_old[i]= p->r.p[i];
-  p->r.p[i] =p_real->r.p[i] +director[i]/l*p->p.vs_relative_distance;
-  p->l.i[i] =p_real->l.i[i];
-//  fold_coordinate(p->r.p, p->l.i, i);
+  new_pos[i] =p_real->r.p[i] +director[i]/l*p->p.vs_relative_distance;
+  // Handle the case that one of the particles had gone over the periodic
+  // boundary and its coordinate has been folded
+  #ifdef PARTIAL_PERIODIC
+   if (PERIODIC(i)) 
+  #endif
+  {
+    tmp =p->r.p[i] -new_pos[i];
+    //printf("%f\n",tmp);
+    if (tmp > box_l[i]/2.) {
+     //printf("greater than box_l/2 %f\n",tmp);
+     p->r.p[i] =new_pos[i] + box_l[i];
+    }
+    else if (tmp < -box_l[i]/2.) {
+     //printf("smaller than box_l/2 %f\n",tmp);
+     p->r.p[i] =new_pos[i] - box_l[i];
+    }
+    else p->r.p[i] =new_pos[i];
+   }
+
  }
 }
 
