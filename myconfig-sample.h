@@ -57,6 +57,9 @@
 // positino and orientation 
 /* #define VIRTUAL_SITES_RELATIVE */
 
+// Activate the following, if you don't want the velocity of virtual sites to be calculated
+// #define VIRTUAL_SITES_NO_VELOCITY
+
 // Activate the following, if you want the langevin thermostat to act on virtual sites
 // #define VIRTUAL_SITES_THERMOSTAT
 
