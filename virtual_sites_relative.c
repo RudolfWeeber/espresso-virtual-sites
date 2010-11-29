@@ -78,6 +78,10 @@ void update_mol_pos_particle(Particle *p)
     }
     else p->r.p[i] =new_pos[i];
    }
+   #ifdef PARTIAL_PERIODIC
+    else p->r.p[i] =new_pos[i];
+   #endif
+
 
  }
 }
