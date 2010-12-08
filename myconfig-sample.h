@@ -63,6 +63,10 @@
 // Activate the following, if you want the langevin thermostat to act on virtual sites
 // #define VIRTUAL_SITES_THERMOSTAT
 
+// Activate the following, if you do NOT wnat the Langevin thermostat to act on non-virtual particles
+// #define THERMOSTAT_IGNORE_NON_VIRTUAL
+
+
 /**********************************************************************/
 /*                        integrator features                         */
 /**********************************************************************/
