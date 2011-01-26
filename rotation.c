@@ -296,12 +296,18 @@ void convert_torqes_propagate_omega()
       ty = A[1 + 3*0]*p[i].f.torque[0] + A[1 + 3*1]*p[i].f.torque[1] + A[1 + 3*2]*p[i].f.torque[2];
       tz = A[2 + 3*0]*p[i].f.torque[0] + A[2 + 3*1]*p[i].f.torque[1] + A[2 + 3*2]*p[i].f.torque[2];
 
+      
       if ( thermo_switch & THERMO_LANGEVIN ) {
+      #ifdef THERMOSTAT_IGNORE_NON_VIRTUAL
+       if (!ifParticleIsVirtual(&p[i]))
+       #endif
+       {
 	friction_thermo_langevin_rotation(&p[i]);
 
 	p[i].f.torque[0]+= tx;
 	p[i].f.torque[1]+= ty;
 	p[i].f.torque[2]+= tz;
+       }
       } else {
 	p[i].f.torque[0] = tx;
 	p[i].f.torque[1] = ty;
@@ -321,7 +327,7 @@ void convert_torqes_propagate_omega()
 #endif
 	  /* if the tensor of inertia is isotrpic, the following refinement is not needed.
 	     Otherwise repeat this loop 2-3 times depending on the required accuracy */
-	  for(times=0;times<=0;times++) { 
+	  for(times=0;times<=5;times++) { 
 	    double Wd[3];
 
 #ifdef ROTATIONAL_INERTIA
@@ -368,6 +374,7 @@ void convert_initial_torques()
       tz = A[2 + 3*0]*p[i].f.torque[0] + A[2 + 3*1]*p[i].f.torque[1] + A[2 + 3*2]*p[i].f.torque[2];
 
       if ( thermo_switch & THERMO_LANGEVIN ) {
+      
 	friction_thermo_langevin_rotation(&p[i]);
 	p[i].f.torque[0]+= tx;
 	p[i].f.torque[1]+= ty;
@@ -392,6 +399,17 @@ void convert_torques_body_to_space(Particle *p, double *torque)
   torque[0] = A[0 + 3*0]*p->f.torque[0] + A[1 + 3*0]*p->f.torque[1] + A[2 + 3*0]*p->f.torque[2];
   torque[1] = A[0 + 3*1]*p->f.torque[0] + A[1 + 3*1]*p->f.torque[1] + A[2 + 3*1]*p->f.torque[2];
   torque[2] = A[0 + 3*2]*p->f.torque[0] + A[1 + 3*2]*p->f.torque[1] + A[2 + 3*2]*p->f.torque[2];
+
+}
+
+void convert_omega_body_to_space(Particle *p, double *omega)
+{
+  double A[9];
+  define_rotation_matrix(p, A);
+
+  omega[0] = A[0 + 3*0]*p->m.omega[0] + A[1 + 3*0]*p->m.omega[1] + A[2 + 3*0]*p->m.omega[2];
+  omega[1] = A[0 + 3*1]*p->m.omega[0] + A[1 + 3*1]*p->m.omega[1] + A[2 + 3*1]*p->m.omega[2];
+  omega[2] = A[0 + 3*2]*p->m.omega[0] + A[1 + 3*2]*p->m.omega[1] + A[2 + 3*2]*p->m.omega[2];
 
 }
 

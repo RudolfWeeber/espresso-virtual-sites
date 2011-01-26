@@ -115,8 +115,11 @@ void update_mol_vel_particle(Particle *p)
  double l =sqrt(sqrlen(director));
  // Division comes in the loop below
 
+ // Get omega of real particle in space-fixed frame
+ double omega_space_frame[3];
+ convert_omega_body_to_space(p_real,omega_space_frame);
  // Obtain velocity from v=v_real particle + omega_real_particle \times director
- vector_product(p_real->m.omega,director,p->m.v);
+ vector_product(omega_space_frame,director,p->m.v);
 
  int i;
  // Add prefactors and add velocity of real particle
@@ -146,6 +149,7 @@ void distribute_mol_force()
     for(i = 0; i < np; i++) {
       // We only care about virtual particles
       if (ifParticleIsVirtual(&p[i])) {
+       update_mol_pos(p[i]);
 
        // First obtain the real particle responsible for this virtual particle:
        Particle *p_real = vs_relative_get_real_particle(&p[i]);
@@ -165,8 +169,10 @@ void distribute_mol_force()
 
        // Add forces and torques
        int j;
+//       printf("Particle %d gets torque from %f %f %f of particle %d\n",p_real->p.identity, p[i].f.f[0], p[i].f.f[1],p[i].f.f[2], p[i].p.identity);
        for (j=0;j<3;j++) {
          p_real->f.torque[j]+=tmp[j];
+//	 printf("%f ",tmp[j]);
 	 p_real->f.f[j]+=p[i].f.f[j];
 	 // Clear forces on virtual particle
 	 p[i].f.f[j]=0;

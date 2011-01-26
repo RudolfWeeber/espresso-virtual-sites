@@ -146,13 +146,17 @@ MDINLINE void friction_thermo_langevin(Particle *p)
 
   for ( j = 0 ; j < 3 ; j++) {
 #ifdef EXTERNAL_FORCES
-    if (!(p->l.ext_flag & COORD_FIXED(j)))
+//    if (!(p->l.ext_flag & COORD_FIXED(j)))
+    if (1==1)
 #endif
+      {
       p->f.f[j] = langevin_pref1*p->m.v[j]*PMASS(*p) + langevin_pref2*(d_random()-0.5)*massf;
+    }
 #ifdef EXTERNAL_FORCES
     else p->f.f[j] = 0;
 #endif
   }
+//  printf("%d: %e %e %e %e %e %e\n",p->p.identity, p->f.f[0],p->f.f[1],p->f.f[2], p->m.v[0],p->m.v[1],p->m.v[2]);
   
 
   ONEPART_TRACE(if(p->p.identity==check_id) fprintf(stderr,"%d: OPT: LANG f = (%.3e,%.3e,%.3e)\n",this_node,p->f.f[0],p->f.f[1],p->f.f[2]));
@@ -165,7 +169,6 @@ MDINLINE void friction_thermo_langevin(Particle *p)
 */
 MDINLINE void friction_thermo_langevin_rotation(Particle *p)
 {
-  return;
   extern double langevin_pref2;
 
   int j;
